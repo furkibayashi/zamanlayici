@@ -136,5 +136,17 @@ Tüm metinler [`src/i18n.js`](src/i18n.js) dosyasında. Yeni bir dil için `tr` 
   `gh attestation verify Zamanlayici-2.1.0.exe -R furkibayashi/zamanlayici` and compare the SHA-256 in `SHA256SUMS.txt`.
   The only network request is an optional update check to `api.github.com`; no data is collected. See the [security section](#guvenlik) for the exact commands it runs.
 
+## Kod imzalama politikası / Code signing policy
+
+Ücretsiz kod imzalama [SignPath.io](https://about.signpath.io) tarafından, sertifika ise [SignPath Foundation](https://signpath.org) tarafından sağlanmaktadır (başvuru sürecinde; onaylanana kadar dosyalar imzasızdır).
+
+*Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org)* (application pending; releases are unsigned until approved).
+
+- **Yazarlar ve inceleyiciler / Committers and reviewers:** [furkibayashi](https://github.com/furkibayashi)
+- **Onaylayıcılar / Approvers:** [furkibayashi](https://github.com/furkibayashi)
+- Yalnızca bu depodaki koddan [GitHub Actions](.github/workflows/release.yml) ile derlenen dosyalar imzalanır. / Only files built from this repository by GitHub Actions are signed.
+
+**Gizlilik / Privacy:** Bu program, isteğe bağlı güncelleme denetimi (`api.github.com`) dışında hiçbir ağ sistemine bilgi aktarmaz. / This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it; the only network request is the optional update check to `api.github.com`.
+
 ## Lisans
 [MIT](LICENSE) © 2026 furkibayashi
