@@ -1,0 +1,58 @@
+{
+  "name": "kapat",
+  "version": "2.1.0",
+  "description": "Zamanlı bilgisayar kapatma, yeniden başlatma, uyku ve kilitleme aracı",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:test": "set ZAMANLAYICI_DRY_RUN=1&& electron .",
+    "icons": "node scripts/make-icons.js",
+    "build": "electron-builder --win",
+    "check": "node --check main.js && node --check preload.js && node --check src/app.js && node --check src/warning.js && node --check src/mini.js && node --check src/i18n.js"
+  },
+  "build": {
+    "appId": "com.kapat.zamanlayici",
+    "productName": "Zamanlayici",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "Zamanlayici-${version}.exe"
+    },
+    "publish": null
+  },
+  "keywords": [
+    "shutdown",
+    "timer",
+    "windows",
+    "electron",
+    "sleep",
+    "zamanlayici"
+  ],
+  "author": "furkibayashi",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^43.1.0",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/furkibayashi/zamanlayici.git"
+  },
+  "homepage": "https://github.com/furkibayashi/zamanlayici"
+}

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr" data-accent="amber" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+  <title>Mini</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { -webkit-app-region: drag; background: var(--bg); }
+    .mini {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px 0 14px;
+      border: 1px solid var(--line-2);
+      background:
+        radial-gradient(160px 90px at 0% 50%, color-mix(in oklab, var(--accent) 14%, transparent), transparent 70%),
+        var(--bg);
+      overflow: hidden;
+    }
+    .ic {
+      width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+      display: grid; place-items: center;
+      color: var(--accent-fg);
+      background: color-mix(in oklab, var(--accent) 13%, var(--surface));
+    }
+    .ic svg { width: 20px; height: 20px; }
+    .txt { flex: 1; min-width: 0; }
+    .time {
+      font-family: var(--font-display);
+      font-variant-numeric: tabular-nums;
+      font-size: 26px; font-weight: 400; line-height: 1.05; letter-spacing: -0.5px;
+    }
+    .lbl { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .btns { display: flex; flex-direction: column; gap: 2px; -webkit-app-region: no-drag; }
+    .btns button { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: var(--faint); transition: all 0.15s; }
+    .btns button:hover { background: var(--surface-2); color: var(--text); }
+    .btns svg { width: 15px; height: 15px; }
+    .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--surface-2); }
+    .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent-2), var(--accent)); transition: width 0.25s linear; }
+    body.warning .ic { color: var(--danger); background: var(--danger-soft); }
+    body.warning .time { color: var(--danger); animation: pulse 1s ease-in-out infinite; }
+    body.warning .bar i { background: var(--danger); }
+    body.paused .time { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-shutdown" viewBox="0 0 24 24"><path d="M12 3.5v8"/><path d="M6.6 7a7.6 7.6 0 1 0 10.8 0"/></symbol>
+      <symbol id="i-restart" viewBox="0 0 24 24"><path d="M19.5 12.5a7.5 7.5 0 1 1-2.2-5.8"/><path d="M19.5 4v4.5H15"/></symbol>
+      <symbol id="i-sleep" viewBox="0 0 24 24"><path d="M19.5 14.6A7.8 7.8 0 0 1 9.4 4.5a7.8 7.8 0 1 0 10.1 10.1z"/></symbol>
+      <symbol id="i-hibernate" viewBox="0 0 24 24"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/><path d="M9.5 4.5 12 6.5l2.5-2M9.5 19.5 12 17.5l2.5 2"/></symbol>
+      <symbol id="i-logoff" viewBox="0 0 24 24"><path d="M9.5 20.5H6a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2h3.5"/><path d="m15.5 16.5 4.5-4.5-4.5-4.5M20 12H9"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></symbol>
+      <symbol id="i-open" viewBox="0 0 24 24"><path d="M14 4.5h5.5V10M19.5 4.5 12 12M18 14v4a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18V7a1.5 1.5 0 0 1 1.5-1.5H10"/></symbol>
+    </defs>
+  </svg>
+  <div class="mini">
+    <div class="ic"><svg><use id="actIcon" href="#i-shutdown"/></svg></div>
+    <div class="txt">
+      <div class="time" id="time">--:--</div>
+      <div class="lbl" id="lbl"></div>
+    </div>
+    <div class="btns">
+      <button id="btnOpen" data-i18n-title="mini.open"><svg><use href="#i-open"/></svg></button>
+      <button id="btnClose" data-i18n-title="btn.close"><svg><use href="#i-x"/></svg></button>
+    </div>
+    <div class="bar"><i id="bar"></i></div>
+  </div>
+  <script src="i18n.js"></script>
+  <script src="mini.js"></script>
+</body>
+</html>

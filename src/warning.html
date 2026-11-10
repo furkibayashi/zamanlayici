@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr" data-accent="amber" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+  <title>Zamanlayıcı uyarısı</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { -webkit-app-region: drag; }
+    .card {
+      height: 100vh;
+      padding: 22px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(255, 93, 108, 0.35);
+      background:
+        radial-gradient(380px 220px at 0% 0%, rgba(255, 93, 108, 0.16), transparent 70%),
+        var(--bg);
+    }
+    .head { display: flex; align-items: center; gap: 14px; }
+    .badge-icon {
+      position: relative;
+      width: 48px; height: 48px; border-radius: 14px;
+      display: grid; place-items: center;
+      background: var(--danger-soft); color: var(--danger);
+    }
+    .badge-icon svg { width: 24px; height: 24px; }
+    .badge-icon::after {
+      content: ""; position: absolute; inset: -4px; border-radius: 18px;
+      border: 2px solid rgba(255, 93, 108, 0.5);
+      animation: ring 1.4s ease-out infinite;
+    }
+    @keyframes ring { from { opacity: 1; transform: scale(0.9); } to { opacity: 0; transform: scale(1.25); } }
+    h1 { font-family: var(--font-display); font-size: 19px; font-weight: 600; letter-spacing: -0.2px; }
+    .head p { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+    .count {
+      display: flex; align-items: baseline; gap: 10px;
+      margin: 18px 0 10px;
+    }
+    .count b {
+      font-family: var(--font-display);
+      font-variant-numeric: tabular-nums;
+      font-size: 54px; font-weight: 300; line-height: 1; letter-spacing: -1.5px;
+      color: var(--warn-digit);
+    }
+    .count span { color: var(--muted); font-size: 13px; }
+    .bar { height: 5px; border-radius: 5px; background: var(--surface-2); overflow: hidden; }
+    .bar i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #ff8a5d, var(--danger)); box-shadow: 0 0 12px rgba(255, 93, 108, 0.6); transition: width 0.25s linear; }
+    .btns { display: grid; grid-template-columns: 1.3fr 1fr auto; gap: 8px; margin-top: auto; -webkit-app-region: no-drag; }
+    .btns { grid-template-columns: 1fr auto auto !important; }
+    .btns button { padding: 12px 14px; white-space: nowrap; }
+    .cancel { background: var(--text); color: var(--bg); border-radius: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 7px; transition: filter 0.15s; }
+    .cancel:hover { filter: brightness(0.92); }
+    .cancel svg { width: 17px; height: 17px; stroke-width: 2.2; }
+    .now { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-shutdown" viewBox="0 0 24 24"><path d="M12 3.5v8"/><path d="M6.6 7a7.6 7.6 0 1 0 10.8 0"/></symbol>
+      <symbol id="i-restart" viewBox="0 0 24 24"><path d="M19.5 12.5a7.5 7.5 0 1 1-2.2-5.8"/><path d="M19.5 4v4.5H15"/></symbol>
+      <symbol id="i-sleep" viewBox="0 0 24 24"><path d="M19.5 14.6A7.8 7.8 0 0 1 9.4 4.5a7.8 7.8 0 1 0 10.1 10.1z"/></symbol>
+      <symbol id="i-hibernate" viewBox="0 0 24 24"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/><path d="M9.5 4.5 12 6.5l2.5-2M9.5 19.5 12 17.5l2.5 2"/></symbol>
+      <symbol id="i-logoff" viewBox="0 0 24 24"><path d="M9.5 20.5H6a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2h3.5"/><path d="m15.5 16.5 4.5-4.5-4.5-4.5M20 12H9"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></symbol>
+    </defs>
+  </svg>
+
+  <div class="card">
+    <div class="head">
+      <div class="badge-icon"><svg><use id="actIcon" href="#i-shutdown"/></svg></div>
+      <div>
+        <h1 id="title"></h1>
+        <p id="desc"></p>
+      </div>
+    </div>
+    <div class="count"><b id="count">1:00</b><span data-i18n="warn.seconds"></span></div>
+    <div class="bar"><i id="bar" style="width:100%"></i></div>
+    <div class="btns">
+      <button class="cancel" id="btnCancel"><svg><use href="#i-x"/></svg><span data-i18n="btn.cancel"></span></button>
+      <button class="ghost-btn" id="btnSnooze"><svg><use href="#i-plus"/></svg><span id="snoozeLabel"></span></button>
+      <button class="ghost-btn now" id="btnNow" data-i18n-title="warn.nowTitle" data-i18n="warn.now"></button>
+    </div>
+  </div>
+  <script src="i18n.js"></script>
+  <script src="warning.js"></script>
+</body>
+</html>
