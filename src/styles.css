@@ -697,3 +697,91 @@ body.warning .digits { animation: pulse 1s ease-in-out infinite; color: var(--wa
 .about-actions .danger { margin-left: auto; }
 .seg { flex-wrap: nowrap; }
 .seg button { white-space: nowrap; }
+
+/* ---------- Sayılara tıklayıp yazma ---------- */
+.digits .seg-num { cursor: text; position: relative; }
+.digits .seg-num::after {
+  content: ""; position: absolute; left: 6px; right: 6px; bottom: -4px;
+  border-bottom: 2px dashed color-mix(in oklab, var(--accent) 55%, transparent);
+  opacity: 0; transition: opacity 0.15s;
+}
+.digits .seg-num:hover::after { opacity: 1; }
+.seg-input {
+  font: inherit;
+  letter-spacing: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-fg);
+  caret-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
+  border: 0;
+  border-bottom: 2px solid var(--accent);
+  border-radius: 10px 10px 4px 4px;
+  text-align: center;
+  outline: none;
+  padding: 0 2px;
+  margin: 0 1px;
+  user-select: text;
+  line-height: 1;
+}
+
+/* ---------- Telefondan kontrol ---------- */
+.remote-pill {
+  -webkit-app-region: no-drag;
+  width: 24px; height: 24px; border-radius: 8px;
+  display: grid; place-items: center;
+  color: var(--faint);
+  position: relative;
+  transition: color 0.2s, background 0.2s;
+}
+.remote-pill svg { width: 15px; height: 15px; }
+.remote-pill:hover { background: var(--surface-2); color: var(--text); }
+.remote-pill.online { color: var(--ok); }
+.remote-pill.online::after {
+  content: ""; position: absolute; top: 3px; right: 3px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ok); box-shadow: 0 0 6px var(--ok);
+}
+.row.solo { border-radius: 14px; border-bottom-width: 1px; }
+.row.solo.attached { border-radius: 14px 14px 0 0; border-bottom-width: 0; }
+.remote-card {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: 18px 16px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0 0 14px 14px;
+  animation: rise 0.3s var(--ease) both;
+}
+.qr-box {
+  width: 184px; height: 184px;
+  padding: 10px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 30px -12px color-mix(in oklab, var(--accent) 50%, transparent), 0 0 0 4px color-mix(in oklab, var(--accent) 22%, transparent);
+}
+.qr-box img { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
+.remote-title { margin-top: 14px; font-size: 14px; font-weight: 600; }
+.remote-steps { margin-top: 4px; font-size: 12px; color: var(--muted); max-width: 340px; }
+.remote-status {
+  margin-top: 12px; display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12.5px; font-weight: 600; color: var(--muted);
+}
+.remote-status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+.remote-status.online { color: var(--ok); }
+.remote-status.online::before { background: var(--ok); box-shadow: 0 0 8px var(--ok); animation: pulse 1.6s ease-in-out infinite; }
+.remote-url {
+  margin-top: 10px; max-width: 100%;
+  padding: 6px 10px; border-radius: 9px;
+  background: var(--bg-2); border: 1px solid var(--line);
+  font: 500 11.5px Consolas, "Cascadia Mono", monospace;
+  color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  user-select: text;
+}
+.remote-card.has-error .remote-url { color: var(--danger); white-space: normal; }
+.remote-actions { display: flex; gap: 6px; margin-top: 10px; }
+.remote-note { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 11.5px; color: var(--faint); }
+.remote-note svg { width: 14px; height: 14px; }
+.remote-others { margin-top: 10px; font-size: 11.5px; color: var(--faint); width: 100%; }
+.remote-others summary { cursor: pointer; }
+.remote-others div > div { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.remote-others code { font: 11px Consolas, monospace; user-select: text; }

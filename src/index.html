@@ -35,6 +35,8 @@
       <symbol id="i-mini" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><rect x="11.5" y="11.5" width="7" height="5" rx="1.2"/></symbol>
       <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></symbol>
       <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5 4.5 6.5v5c0 4.6 3.1 8.1 7.5 9.5 4.4-1.4 7.5-4.9 7.5-9.5v-5z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/></symbol>
       <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11.5A8 8 0 0 0 6 6.5L4 8.5M4 4v4.5h4.5M4 12.5a8 8 0 0 0 14 5l2-2m0 4.5v-4.5h-4.5"/></symbol>
     </defs>
   </svg>
@@ -45,6 +47,7 @@
         <img src="../assets/icon.png" alt="" class="brand-icon">
         <span data-i18n="app.name">Zamanlayıcı</span>
         <span class="state-pill" id="statePill"></span>
+        <button class="remote-pill" id="remotePill" hidden><svg><use href="#i-phone"/></svg></button>
       </div>
       <div class="win-controls">
         <button class="win-btn" id="btnMin" data-i18n-title="btn.min"><svg><use href="#i-min"/></svg></button>
@@ -144,6 +147,30 @@
           <div>
             <h1 data-i18n="settings.title"></h1>
             <p data-i18n="settings.desc"></p>
+          </div>
+        </div>
+
+        <div class="group" id="remoteGroup">
+          <div class="group-title" data-i18n="grp.remote"></div>
+          <div class="row solo" id="remoteRow">
+            <div class="row-text"><b data-i18n="set.remote"></b><span data-i18n="set.remoteDesc"></span></div>
+            <label class="toggle"><input type="checkbox" data-setting="remoteEnabled"><span></span></label>
+          </div>
+          <div class="remote-card" id="remoteCard" hidden>
+            <div class="qr-box" id="qrBox"><img id="remoteQr" alt="QR"></div>
+            <b class="remote-title" data-i18n="remote.scan"></b>
+            <p class="remote-steps" data-i18n="remote.steps"></p>
+            <div class="remote-status" id="remoteStatus"></div>
+            <code class="remote-url" id="remoteUrl"></code>
+            <div class="remote-actions">
+              <button class="ghost-btn small" id="btnCopyLink"><svg><use href="#i-copy"/></svg><span data-i18n="remote.copy"></span></button>
+              <button class="ghost-btn small" id="btnResetLink"><svg><use href="#i-refresh"/></svg><span data-i18n="remote.reset"></span></button>
+            </div>
+            <p class="remote-note"><svg><use href="#i-shield"/></svg><span data-i18n="remote.private"></span></p>
+            <details class="remote-others" id="remoteOthers" hidden>
+              <summary data-i18n="remote.other"></summary>
+              <div id="remoteOtherList"></div>
+            </details>
           </div>
         </div>
 

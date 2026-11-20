@@ -1,6 +1,6 @@
 {
   "name": "kapat",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Zamanlı bilgisayar kapatma, yeniden başlatma, uyku ve kilitleme aracı",
   "main": "main.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "start:test": "set ZAMANLAYICI_DRY_RUN=1&& electron .",
     "icons": "node scripts/make-icons.js",
     "build": "electron-builder --win",
-    "check": "node --check main.js && node --check preload.js && node --check src/app.js && node --check src/warning.js && node --check src/mini.js && node --check src/i18n.js"
+    "check": "node --check main.js && node --check preload.js && node --check remote-server.js && node --check src/app.js && node --check src/warning.js && node --check src/mini.js && node --check src/i18n.js && node --check src/remote.js"
   },
   "build": {
     "appId": "com.kapat.zamanlayici",
@@ -20,6 +20,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "remote-server.js",
       "src/**/*",
       "assets/**/*"
     ],
@@ -49,7 +50,9 @@
     "electron": "^43.1.0",
     "electron-builder": "^26.15.3"
   },
-  "dependencies": {},
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/furkibayashi/zamanlayici.git"

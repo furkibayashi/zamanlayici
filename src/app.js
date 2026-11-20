@@ -200,8 +200,77 @@ const endDrag = () => { drag = null; dial.classList.remove('dragging'); };
 dial.addEventListener('pointerup', endDrag);
 dial.addEventListener('pointercancel', endDrag);
 
+// ---------------------------------------------------------------------------
+// Sayılara tıklayıp elle yazma
+// ---------------------------------------------------------------------------
+let editing = null;
+
+/** Hangi alan kaç haneye ve hangi aralığa izin verir — seçili moda göre */
+function segLimits(seg) {
+  if (setup.mode === 'clock') return seg === 'h' ? { max: 23, len: 2 } : { max: 59, len: 2 };
+  if (setup.mode === 'idle') return { min: 1, max: MAX.idle, len: 3 };
+  return seg === 'h' ? { max: MAX.duration / 60, len: 2 } : { max: 999, len: 3 };
+}
+
+function applySeg(seg, n) {
+  const v = value();
+  const h = Math.floor(v / 60), m = v % 60;
+  const lim = segLimits(seg);
+  n = clamp(n, lim.min || 0, lim.max);
+  if (setup.mode === 'idle') return setValue(n);
+  if (seg === 'h') return setValue(n * 60 + m);
+  return setValue(h * 60 + n); // dakika alanına 90 yazılırsa 1 sa 30 dk olur
+}
+
+function startEdit(seg) {
+  if (state.active || editing) return;
+  const span = $(`#digits [data-seg="${seg}"]`);
+  if (!span) return;
+  const input = document.createElement('input');
+  input.className = 'seg-input';
+  input.type = 'text';
+  input.inputMode = 'numeric';
+  input.maxLength = segLimits(seg).len;
+  input.value = span.textContent;
+  input.setAttribute('aria-label', seg === 'h' ? t('unit.h') : t('unit.m'));
+  const fit = () => { input.style.width = `${Math.max(2, input.value.length) + 0.4}ch`; };
+  fit();
+  span.replaceWith(input);
+  editing = { seg, input };
+  input.focus();
+  input.select();
+  input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, ''); fit(); });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); finishEdit(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); finishEdit(false); }
+    else if (e.key === 'Tab') {
+      const other = seg === 'h' ? 'm' : 'h';
+      if (setup.mode !== 'idle') { e.preventDefault(); finishEdit(true, other); }
+    }
+  });
+  input.addEventListener('blur', () => finishEdit(true));
+}
+
+function finishEdit(commit, next) {
+  if (!editing) return;
+  const { seg, input } = editing;
+  editing = null;
+  const n = parseInt(input.value, 10);
+  $('#digits').__html = null;
+  if (commit && Number.isFinite(n)) applySeg(seg, n);
+  else renderTimer();
+  if (next) startEdit(next);
+}
+
+function setDigits(el, html) { if (!editing) setHTML(el, html); }
+
+$('#digits').addEventListener('click', (e) => {
+  const seg = e.target.closest('.seg-num');
+  if (seg) startEdit(seg.dataset.seg);
+});
+
 $('.dial-wrap').addEventListener('wheel', (e) => {
-  if (state.active) return;
+  if (state.active || editing) return;
   e.preventDefault();
   const dir = e.deltaY < 0 ? 1 : -1;
   const seg = e.target.closest('[data-seg]');
@@ -266,7 +335,7 @@ function renderTimer() {
 
     if (setup.mode === 'duration') {
       const h = Math.floor(v / 60), m = v % 60;
-      setHTML(digits, `<span class="seg-num" data-seg="h">${h}</span><span class="unit">${esc(t('unit.h'))}</span><span class="seg-num" data-seg="m">${pad(m)}</span><span class="unit">${esc(t('unit.m'))}</span>`);
+      setDigits(digits, `<span class="seg-num" data-seg="h">${h}</span><span class="unit">${esc(t('unit.h'))}</span><span class="seg-num" data-seg="m">${pad(m)}</span><span class="unit">${esc(t('unit.m'))}</span>`);
       if (v > 0) {
         const end = new Date(Date.now() + v * 60000);
         setHTML(sub, th('sub.around', { day: dayWord(end), time: fmtHM(end) }));
@@ -274,13 +343,13 @@ function renderTimer() {
       setArc(v === 0 ? 0 : ((v % 60) || 60) / 60, true);
     } else if (setup.mode === 'clock') {
       const h = Math.floor(v / 60), m = v % 60;
-      setHTML(digits, `<span class="seg-num" data-seg="h">${pad(h)}</span><span class="colon">:</span><span class="seg-num" data-seg="m">${pad(m)}</span>`);
+      setDigits(digits, `<span class="seg-num" data-seg="h">${pad(h)}</span><span class="colon">:</span><span class="seg-num" data-seg="m">${pad(m)}</span>`);
       const target = clockTarget(v);
       const mins = Math.round((target - Date.now()) / 60000);
       setHTML(sub, th('sub.in', { day: dayWord(target), d: fmtMinutes(Math.max(1, mins)) }));
       setArc(((v % 60) || 60) / 60, true);
     } else {
-      setHTML(digits, `<span class="seg-num" data-seg="m">${v}</span><span class="unit">${esc(t('unit.m'))}</span>`);
+      setDigits(digits, `<span class="seg-num" data-seg="m">${v}</span><span class="unit">${esc(t('unit.m'))}</span>`);
       setHTML(sub, esc(t('sub.idle')));
       setArc(((v % 60) || 60) / 60, true);
     }
@@ -295,6 +364,7 @@ function renderTimer() {
     $('#hint').hidden = setup.mode === 'clock';
     $('#startLabel').textContent = t(setup.mode === 'idle' ? 'btn.startIdle' : 'btn.start');
   } else {
+    if (editing) { editing = null; digits.__html = null; } // zamanlayıcı başka yerden (ör. telefondan) başladı
     setHTML(top, `${icon(s.action)}${esc(actionName(s.action))}${s.repeat ? icon('repeat') : ''}`);
     let frac;
     if (s.mode === 'idle' && !warning) {
@@ -413,9 +483,71 @@ function renderAll() {
   renderSettings();
   renderPresets();
   renderHistory();
+  renderRemote();
   for (const el of [$('#centerTop'), $('#digits'), $('#centerSub'), $('#chips'), $('#btnPause')]) el.__html = null;
   renderTimer();
 }
+
+// ---------------------------------------------------------------------------
+// Telefondan kontrol
+// ---------------------------------------------------------------------------
+let remote = { enabled: false };
+const PHONE_ONLINE_MS = 6000;
+
+function renderRemoteStatus() {
+  const online = remote.lastSeen && Date.now() - remote.lastSeen < PHONE_ONLINE_MS;
+  const pill = $('#remotePill');
+  pill.hidden = !remote.enabled;
+  pill.classList.toggle('online', !!online);
+  pill.title = online ? t('remote.connected', { device: remote.device }) : t('grp.remote');
+
+  const st = $('#remoteStatus');
+  if (!remote.enabled) return;
+  if (online) {
+    st.className = 'remote-status online';
+    st.textContent = t('remote.connected', { device: remote.device });
+  } else if (remote.lastSeen) {
+    st.className = 'remote-status';
+    st.textContent = t('remote.lastSeen', { device: remote.device, time: fmtHM(new Date(remote.lastSeen)) });
+  } else {
+    st.className = 'remote-status';
+    st.textContent = t('remote.never');
+  }
+}
+
+function renderRemote() {
+  const card = $('#remoteCard');
+  card.hidden = !remote.enabled;
+  $('#remoteRow').classList.toggle('attached', !!remote.enabled);
+  if (remote.enabled) {
+    const err = remote.error === 'no-network' ? t('remote.noNetwork') : remote.error ? t('remote.error', { e: remote.error }) : null;
+    card.classList.toggle('has-error', !!err);
+    $('#qrBox').hidden = !remote.qr;
+    if (remote.qr) $('#remoteQr').src = remote.qr;
+    $('#remoteUrl').textContent = err || remote.url || '…';
+    const others = remote.others || [];
+    $('#remoteOthers').hidden = !others.length;
+    $('#remoteOtherList').innerHTML = others.map((o) => `<div><span>${esc(o.name)}</span><code>${esc(o.url.replace(/#k=.*/, ''))}</code></div>`).join('');
+  }
+  renderRemoteStatus();
+}
+
+$('#btnCopyLink').addEventListener('click', async () => {
+  if (!remote.url) return;
+  try {
+    await navigator.clipboard.writeText(remote.url);
+    toast(t('remote.copied'));
+  } catch (err) { toast(err.message, 'error'); }
+});
+$('#btnResetLink').addEventListener('click', async () => {
+  remote = await window.api.remoteReset();
+  renderRemote();
+  toast(t('remote.resetDone'));
+});
+$('#remotePill').addEventListener('click', () => {
+  switchView('settings');
+  $('#remoteGroup').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 
 // ---------------------------------------------------------------------------
 // Bildirim balonu & modal
@@ -629,8 +761,11 @@ document.addEventListener('keydown', (e) => {
   const data = await window.api.init();
   ctx = { settings: data.settings, presets: data.presets, history: data.history, version: data.version, dryRun: data.dryRun };
   state = data.state;
+  try { remote = await window.api.remoteInfo(); } catch { /* yok say */ }
   renderAll();
 
+  window.api.onRemote((r) => { remote = r; renderRemote(); });
+  setInterval(renderRemoteStatus, 2000);
   window.api.onState((s) => { state = s; renderTimer(); });
   window.api.onStore((d) => {
     const langChanged = d.settings.language !== ctx.settings.language;

@@ -1,0 +1,131 @@
+/* Telefon arayüzü: styles.css'teki renk ve bileşenleri kullanır, yalnızca yerleşimi değiştirir. */
+html, body { height: auto; min-height: 100%; }
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-tap-highlight-color: transparent;
+  background:
+    radial-gradient(420px 320px at 50% 0%, color-mix(in oklab, var(--accent) var(--glow), transparent), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+}
+button, label, input { touch-action: manipulation; }
+body.warning { background: radial-gradient(420px 320px at 50% 10%, rgba(255, 93, 108, 0.16), transparent 70%), var(--bg); }
+
+.phone {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: max(14px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+}
+
+.p-head { display: flex; align-items: center; gap: 12px; padding: 4px 2px 14px; }
+.p-logo { width: 40px; height: 40px; border-radius: 11px; }
+.p-titles { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.p-titles b { font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: -0.2px; }
+.p-titles span { font-size: 12px; color: var(--muted); }
+
+.p-banner {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px; padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 13px; font-weight: 600;
+}
+.p-banner svg { width: 18px; height: 18px; }
+
+.p-msg { text-align: center; padding: 70px 20px; }
+.p-msg-icon {
+  width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 20px;
+  display: grid; place-items: center;
+  background: var(--danger-soft); color: var(--danger);
+}
+.p-msg-icon svg { width: 30px; height: 30px; }
+.p-msg h2 { font-family: var(--font-display); font-size: 21px; font-weight: 600; }
+.p-msg p { margin-top: 8px; font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+.section-label { margin-top: 2px; }
+
+/* Eylemler: telefonda 3 sütun */
+.p-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.p-actions .action { padding: 14px 4px 12px; font-size: 12.5px; border-radius: 15px; }
+.p-actions .action svg { width: 24px; height: 24px; }
+.p-actions .action .key { display: none; }
+.modes { margin-top: 14px; }
+.modes button { padding: 10px 2px; font-size: 13px; }
+
+/* Değer kutuları */
+.p-value { margin: 22px 0 6px; text-align: center; }
+.p-fields { display: none; justify-content: center; gap: 12px; }
+.p-fields.show { display: flex; }
+.p-field {
+  display: flex; align-items: baseline; gap: 6px;
+  padding: 10px 16px 12px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  cursor: text;
+}
+.p-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 18%, transparent);
+}
+.p-field input {
+  width: 2.3ch;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-size: 54px;
+  font-weight: 300;
+  letter-spacing: -1.5px;
+  line-height: 1;
+  color: var(--text);
+  caret-color: var(--accent);
+  background: none;
+  border: 0;
+  outline: none;
+  text-align: center;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.p-field input#inM, .p-field input#inI { width: 2.6ch; }
+.p-field span { font-size: 15px; font-weight: 600; color: var(--muted); }
+.p-time input { width: auto; min-width: 5.2ch; color-scheme: inherit; }
+[data-theme="light"] .p-time input { color-scheme: light; }
+[data-theme="dark"] .p-time input, [data-theme="oled"] .p-time input { color-scheme: dark; }
+.p-time input::-webkit-calendar-picker-indicator { opacity: 0.5; }
+.p-sub { margin-top: 12px; font-size: 13.5px; color: var(--muted); min-height: 20px; }
+.p-sub b { color: var(--text); font-weight: 600; }
+
+.chips { grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.chip { padding: 11px 0; font-size: 13px; border-radius: 12px; }
+.repeat-row { display: flex; width: fit-content; margin: 14px auto 0; }
+
+.p-wide { width: 100%; margin-top: 18px; padding: 17px; font-size: 15.5px; border-radius: 16px; }
+
+/* Çalışan zamanlayıcı */
+.p-ring { position: relative; width: min(84vw, 330px); aspect-ratio: 1; margin: 6px auto 18px; }
+.p-ring .dial { cursor: default; }
+.p-ring .digits { font-size: clamp(44px, 14vw, 60px); }
+.p-ring .digits.long { font-size: clamp(38px, 12vw, 50px); }
+.p-run-ctrls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.p-run-ctrls.two { grid-template-columns: repeat(2, 1fr); }
+.p-run-ctrls .ghost-btn { padding: 14px 8px; font-size: 14px; }
+.p-running .danger-btn { margin-top: 10px; }
+
+.p-presets { margin-top: 26px; }
+.p-presets .item { padding: 12px; }
+
+.toast { top: auto; bottom: max(20px, env(safe-area-inset-bottom)); transform: translate(-50%, 14px); }
+.toast.show { transform: translate(-50%, 0); }
+
+@media (max-width: 360px) {
+  .p-field input { font-size: 44px; }
+  .modes button svg { display: none; }
+}
+
+@media (max-width: 420px) {
+  .modes button svg { display: none; }
+  .modes button { font-size: 12.5px; }
+}
+.p-time input::-webkit-calendar-picker-indicator { width: 22px; height: 22px; margin-left: 4px; }

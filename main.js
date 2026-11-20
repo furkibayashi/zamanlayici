@@ -6,6 +6,9 @@ const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const I18N = require('./src/i18n.js');
+const QRCode = require('qrcode');
+const crypto = require('crypto');
+const { createRemoteServer, lanAddresses } = require('./remote-server.js');
 
 const APP_ID = 'com.kapat.zamanlayici';
 const REPO = 'furkibayashi/zamanlayici';
@@ -65,6 +68,9 @@ const DEFAULT_SETTINGS = {
   trayHintShown: false,
   miniPos: null,
   lastNotifiedVersion: null,
+  remoteEnabled: false,
+  remoteToken: null,
+  remotePort: 4848,
 };
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -792,6 +798,107 @@ function applyLoginItem() {
 }
 
 // ---------------------------------------------------------------------------
+// Telefondan kontrol (aynı Wi-Fi)
+// ---------------------------------------------------------------------------
+const REMOTE_HOST = process.env.ZAMANLAYICI_REMOTE_HOST || '0.0.0.0';
+const remoteInfo = { enabled: false, running: false, url: null, qr: null, others: [], error: null, lastSeen: null, device: null };
+const seenDevices = new Set();
+
+function newToken() {
+  return crypto.randomBytes(18).toString('base64url');
+}
+
+function deviceName(ua) {
+  if (/iPhone/i.test(ua)) return 'iPhone';
+  if (/iPad/i.test(ua)) return 'iPad';
+  if (/Android/i.test(ua)) return 'Android';
+  if (/Windows/i.test(ua)) return 'Windows';
+  if (/Mac OS/i.test(ua)) return 'Mac';
+  return 'Telefon';
+}
+
+const remote = createRemoteServer({
+  root: __dirname,
+  getToken: () => store.settings.remoteToken,
+  onSeen: (ua) => {
+    const now = Date.now();
+    const device = deviceName(ua);
+    const fresh = !remoteInfo.lastSeen || now - remoteInfo.lastSeen > 3000 || remoteInfo.device !== device;
+    remoteInfo.lastSeen = now;
+    remoteInfo.device = device;
+    if (!seenDevices.has(ua)) {
+      seenDevices.add(ua);
+      notify(tr('n.remoteTitle'), tr('n.remoteBody', { device }), showMain);
+    }
+    if (fresh) sendRemote();
+  },
+  api: {
+    state: () => ({
+      state: snapshot(),
+      settings: { language: L(), theme: store.settings.theme, accent: store.settings.accent },
+      presets: store.presets,
+      version: app.getVersion(),
+    }),
+    start: (cfg) => startTimer(cfg),
+    cancel: () => { stopTimer('cancelled'); return snapshot(); },
+    pause: () => pause(),
+    resume: () => resume(),
+    extend: (m) => extend(m),
+    preset: (id) => {
+      const p = store.presets.find((x) => x.id === id);
+      if (!p) throw new Error(tr('err.notFound'));
+      return startTimer(presetConfig(p));
+    },
+  },
+});
+
+function sendRemote() {
+  sendAll('remote', { ...remoteInfo });
+}
+
+async function refreshRemoteUrl() {
+  const addrs = lanAddresses();
+  const host = REMOTE_HOST === '0.0.0.0' ? (addrs[0] && addrs[0].ip) : REMOTE_HOST;
+  if (!host || !remote.running) {
+    remoteInfo.url = null;
+    remoteInfo.qr = null;
+    remoteInfo.others = [];
+    if (remote.running) remoteInfo.error = 'no-network';
+    return;
+  }
+  // Anahtar adresin # kısmında durur: sunucuya, kayıtlara ve yönlendirme başlıklarına gitmez.
+  const make = (ip) => `http://${ip}:${remote.port}/#k=${store.settings.remoteToken}`;
+  remoteInfo.url = make(host);
+  remoteInfo.others = REMOTE_HOST === '0.0.0.0' ? addrs.slice(1).map((a) => ({ name: a.name, url: make(a.ip) })) : [];
+  remoteInfo.qr = await QRCode.toDataURL(remoteInfo.url, { margin: 1, width: 360, errorCorrectionLevel: 'M' });
+  remoteInfo.error = null;
+}
+
+async function applyRemote() {
+  const s = store.settings;
+  remoteInfo.enabled = !!s.remoteEnabled;
+  if (!s.remoteEnabled) {
+    remote.stop();
+    Object.assign(remoteInfo, { running: false, url: null, qr: null, others: [], error: null });
+    sendRemote();
+    return;
+  }
+  if (!s.remoteToken) {
+    s.remoteToken = newToken();
+    saveStore();
+  }
+  try {
+    if (!remote.running) await remote.start(s.remotePort, REMOTE_HOST);
+    remoteInfo.running = true;
+    await refreshRemoteUrl();
+  } catch (e) {
+    remoteInfo.running = false;
+    remoteInfo.error = e.code || e.message;
+  }
+  sendRemote();
+}
+
+// ---------------------------------------------------------------------------
 // IPC
 // ---------------------------------------------------------------------------
 function storePayload() {
@@ -816,7 +923,7 @@ function sanitizeSettings(patch) {
   if (ACCENTS.includes(p.accent)) s.accent = p.accent;
   if ('warningSeconds' in p) s.warningSeconds = Math.max(10, Math.min(300, Number(p.warningSeconds) || 60));
   if ('notifyMinutes' in p) s.notifyMinutes = Math.max(0, Math.min(60, Number(p.notifyMinutes) || 0));
-  for (const k of ['forceClose', 'closeToTray', 'launchAtStartup', 'sound', 'miniAuto', 'globalShortcuts', 'checkUpdates']) {
+  for (const k of ['forceClose', 'closeToTray', 'launchAtStartup', 'sound', 'miniAuto', 'globalShortcuts', 'checkUpdates', 'remoteEnabled']) {
     if (k in p) s[k] = !!p[k];
   }
 }
@@ -845,6 +952,7 @@ function registerIpc() {
     if (before.launchAtStartup !== s.launchAtStartup) applyLoginItem();
     if (before.theme !== s.theme) applyTheme();
     if (before.globalShortcuts !== s.globalShortcuts) applyShortcuts();
+    if (before.remoteEnabled !== s.remoteEnabled) applyRemote();
     if (before.language !== s.language) {
       updateTray();
       lastTrayText = '';
@@ -887,6 +995,20 @@ function registerIpc() {
     return [];
   }));
 
+  ipcMain.handle('remote:info', wrap(async () => {
+    if (remote.running) await refreshRemoteUrl(); // Wi-Fi değişmiş olabilir
+    return { ...remoteInfo };
+  }));
+  ipcMain.handle('remote:reset', wrap(async () => {
+    store.settings.remoteToken = newToken();
+    saveStore();
+    seenDevices.clear();
+    remoteInfo.lastSeen = null;
+    remoteInfo.device = null;
+    await refreshRemoteUrl();
+    sendRemote();
+    return { ...remoteInfo };
+  }));
   ipcMain.handle('mini:toggle', wrap(() => { const open = toggleMini(); broadcast(); return open; }));
   ipcMain.handle('update:check', wrap(() => checkForUpdates()));
   ipcMain.handle('app:open', wrap((which) => {
@@ -933,6 +1055,7 @@ if (!app.requestSingleInstanceLock()) {
     tickHandle = setInterval(tick, 250);
     tick();
     setTimeout(startupUpdateCheck, 8000);
+    applyRemote();
   });
 
   app.on('before-quit', () => {
@@ -940,6 +1063,9 @@ if (!app.requestSingleInstanceLock()) {
     if (tickHandle) clearInterval(tickHandle);
     if (timer) persistActive();
   });
-  app.on('will-quit', () => globalShortcut.unregisterAll());
+  app.on('will-quit', () => {
+    globalShortcut.unregisterAll();
+    remote.stop();
+  });
   app.on('window-all-closed', () => { /* tepside yaşamaya devam et */ });
 }

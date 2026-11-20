@@ -23,7 +23,8 @@ Açık kaynak, kurulum gerektirmez, reklamsız, veri toplamaz.
 |---|---|
 | **6 eylem** | Kapat · Yeniden başlat · Uyku · Hazırda beklet · Oturumu kapat · Kilitle |
 | **3 mod** | *Süre sonra* (ör. 45 dk) · *Belirli saatte* (ör. 23:30, istenirse **her gün**) · *Boşta kalınca* (fare/klavye X dk kullanılmazsa) |
-| **Sürüklenebilir kadran** | Bir tam tur = 1 saat. Fare tekerleği ve ↑ ↓ tuşları da çalışır |
+| **Sürüklenebilir kadran** | Bir tam tur = 1 saat. Sayılara tıklayıp doğrudan yazabilir, fare tekerleği ve ↑ ↓ tuşlarını da kullanabilirsiniz |
+| **📱 Telefondan kontrol** | Aynı Wi-Fi'deki telefonunuzla QR kodu okutun; tarayıcıdan başlatın, erteleyin, iptal edin. Uygulama indirmeye gerek yok |
 | **Son uyarı penceresi** | Eylemden önce her pencerenin üstünde geri sayım: *İptal* · *10 dk ertele* · *Şimdi* |
 | **Mini sayaç** | Her zaman üstte duran küçük geri sayım penceresi |
 | **Sistem tepsisi** | Kapatınca arka planda çalışır; tepsiden hızlı başlat, ertele, iptal et |
@@ -41,6 +42,8 @@ Açık kaynak, kurulum gerektirmez, reklamsız, veri toplamaz.
 <img src="docs/warning.png" width="380" alt="Son uyarı penceresi">
 <br>
 <img src="docs/mini.png" width="248" alt="Mini sayaç">
+<br>
+<img src="docs/phone-setup.png" width="200" alt="Telefondan kurulum"> <img src="docs/phone-running.png" width="200" alt="Telefonda geri sayım">
 </div>
 
 ## ⬇️ Kurulum
@@ -101,6 +104,7 @@ Exe'yi [VirusTotal](https://www.virustotal.com/)'e yükleyip 70'ten fazla antivi
   | Uyku | PowerShell: `[System.Windows.Forms.Application]::SetSuspendState('Suspend', ...)` |
 
 - **İnternet:** Tek bir ağ isteği vardır: açılışta `api.github.com` üzerinden bu deponun son sürüm numarasını okumak. Hiçbir veri gönderilmez. **Ayarlar → Güncellemeleri denetle** ile tamamen kapatılabilir.
+- **Telefondan kontrol (varsayılan KAPALI):** Yalnızca siz açarsanız, bilgisayarda yerel ağa açık küçük bir web sunucusu başlar (port 4848, [`remote-server.js`](remote-server.js)). İnternete hiçbir şey göndermez. Her istek, QR koddaki 144 bitlik rastgele bağlantı anahtarını ister; anahtar adresin `#` kısmında durduğu için kayıtlara düşmez. "Yeni bağlantı kodu" ile eski bağlantılar anında geçersiz olur; kapattığınızda sunucu durur. Bağlantı HTTPS değildir, bu yüzden yalnızca güvendiğiniz ev/özel ağlarda kullanın.
 - **Veri:** Ayarlar, ön ayarlar ve geçmiş yalnızca bilgisayarınızda, `%APPDATA%\Zamanlayici\zamanlayici.json` dosyasında tutulur. Telemetri, analiz, reklam yoktur.
 - **İzinler:** Yönetici izni istemez; dosyalarınızı okumaz; arka planda başka program indirmez veya çalıştırmaz.
 - **Electron güvenliği:** `contextIsolation`, `sandbox`, `nodeIntegration: false`, sıkı Content-Security-Policy, uzak içerik yüklenmez, yeni pencere/sayfa açılması engellidir.
@@ -132,9 +136,10 @@ Tüm metinler [`src/i18n.js`](src/i18n.js) dosyasında. Yeni bir dil için `tr` 
 
 - 5 languages (TR, EN, DE, ES, FR), 4 themes, 5 accent colours
 - Final warning window with cancel / snooze, always-on-top mini timer, tray menu, presets, history
+- **Phone remote** (off by default): scan a QR code with a phone on the same Wi-Fi and control the timer from its browser; every request needs a random pairing key, nothing leaves your local network
 - **Is it safe?** Every release is built from this public source by GitHub Actions and carries a signed build-provenance attestation. Verify with
   `gh attestation verify Zamanlayici-2.1.0.exe -R furkibayashi/zamanlayici` and compare the SHA-256 in `SHA256SUMS.txt`.
-  The only network request is an optional update check to `api.github.com`; no data is collected. See the [security section](#guvenlik) for the exact commands it runs.
+  The only internet request is an optional update check to `api.github.com`; no data is collected. The phone remote is an opt-in local-network server only. See the [security section](#guvenlik) for the exact commands it runs.
 
 ## Kod imzalama politikası / Code signing policy
 
@@ -146,7 +151,7 @@ Tüm metinler [`src/i18n.js`](src/i18n.js) dosyasında. Yeni bir dil için `tr` 
 - **Onaylayıcılar / Approvers:** [furkibayashi](https://github.com/furkibayashi)
 - Yalnızca bu depodaki koddan [GitHub Actions](.github/workflows/release.yml) ile derlenen dosyalar imzalanır. / Only files built from this repository by GitHub Actions are signed.
 
-**Gizlilik / Privacy:** Bu program, isteğe bağlı güncelleme denetimi (`api.github.com`) dışında hiçbir ağ sistemine bilgi aktarmaz. / This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it; the only network request is the optional update check to `api.github.com`.
+**Gizlilik / Privacy:** Bu program, isteğe bağlı güncelleme denetimi (`api.github.com`) ve kullanıcının açıkça açtığı yerel ağ telefon kontrolü dışında hiçbir ağ sistemine bilgi aktarmaz. / This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it; the only internet request is the optional update check to `api.github.com`, and the phone remote is an opt-in server that only answers devices on your local network holding the pairing key.
 
 ## Lisans
 [MIT](LICENSE) © 2026 furkibayashi
